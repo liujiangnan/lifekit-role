@@ -1,0 +1,41 @@
+
+<style>
+	.userTd{
+		width:100px;
+		overflow:hidden; 
+		text-overflow:ellipsis; 
+		white-space:nowrap;
+	}
+</style>
+
+<table id="userTable" class="table table-bordered table-hover" >
+  <tr>
+		<th>选择</th>
+    <th>用户名</th>
+    <th>昵称</th>
+    <th>联系电话</th>
+    <th>邮箱</th>
+  </tr>
+  <% for(let i=0;i<rows.length;i++) {
+    let row = rows[i];
+  %>
+  <tr>
+		<td><input type="checkbox" value="<%=row.id%>" /></td>
+    <td><div class="userTd"><%=row.username%></div></td>
+    <td><div class="userTd"><%=row.name%></div></td>
+    <td><div class="userTd"><%=row.phone%></div></td>
+    <td><div class="userTd"><%=row.email%></div></td>
+  </tr> 
+  <%}%>
+</table>
+
+<script>
+
+	$(function(){
+		$("#userTable tr").bind('click',function(){
+			var check = $(this).find(":checkbox").eq(0); 
+			check.prop("checked", !check.prop("checked"));
+		});
+	})
+
+</script>

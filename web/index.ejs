@@ -1,8 +1,18 @@
 
-<%include commonejs/common.ejs%>
+<% include commonejs/common.ejs%>
 
-<%include commonejs/alertModal.ejs%>
+<div class="container-fluid" style="height:100%;">
+	<div class="row" style="height:100%;">
+		<div class="col-md-3" style="padding-right:0px; padding-top: 20px;">
+			<div class="list-group">
+				<a href="javascript:void(0)" id="roleManage" class="list-group-item active">角色维护</a>
+				<a href="javascript:void(0)" id="engineManage" class="list-group-item">模块维护</a>
+			</div>
+		</div>
+		<div class="col-md-9" id="centerFrame" style="height:99%;padding-left:10px;">
 
-<h1>Hello world!!</h1>
+		</div>
+	</div>
+</div>
 
 <script type="text/javascript" src="/lifekit-role/web/static/js/role.js"></script>

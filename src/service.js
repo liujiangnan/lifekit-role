@@ -10,10 +10,12 @@ const sequelize = new Sequelize(
   datasource);
 
 let role = sequelize.import(engineRoot+'/src/model/role.js');
+let user = sequelize.import(engineRoot+'/src/model/user.js');
 let roleEngine = sequelize.import(engineRoot+'/src/model/roleEngine.js');
 let userRole = sequelize.import(engineRoot+'/src/model/userRole.js');
 let engine = sequelize.import(engineRoot+'/src/model/engine.js');
 let engineAuth = sequelize.import(engineRoot+'/src/model/engineAuth.js');
+
 
 sequelize.sync({force: false}).then(function() {
     console.log("角色模块数据结构初始化成功");
@@ -23,8 +25,22 @@ sequelize.sync({force: false}).then(function() {
 
 function service(net) { 
 
-  this.register = function(ctx){
-    return ctx.render("lifekit-login/web/register/index.ejs", {});
+  this.roleManage = function(ctx){
+    return ctx.render("lifekit-role/web/roleManage/index.ejs", {});
+  }
+
+  this.engineManage = function(ctx){
+    return ctx.render("lifekit-role/web/engineManage/index.ejs", {});
+  }
+
+  this.getUserList = async function(ctx){
+    try{
+      let rows = await user.findAll(); 
+      return ctx.render("lifekit-role/web/roleManage/userList.ejs", {rows:rows});
+    }catch(e){
+      console.log(e); 
+      return ctx.render("lifekit-role/web/roleManage/userList.ejs", {});
+    } 
   }
 
   this.login = async function(ctx, parms) {
