@@ -8,7 +8,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     code: {
       type: DataTypes.STRING,
-      unique: true,
       allowNull : false
     },
     name: {
@@ -17,10 +16,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     description: {
       type: DataTypes.STRING
-    },
-    engine_id: {
-      type: DataTypes.INTEGER,
-      allowNull : false
     },
     createdAt: {
       type: DataTypes.DATE,

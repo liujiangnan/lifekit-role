@@ -14,6 +14,9 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull : false
     },
+    engine_auth_id: {
+      type: DataTypes.INTEGER
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue : DataTypes.NOW

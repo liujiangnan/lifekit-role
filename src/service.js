@@ -1,148 +1,112 @@
-const engineRoot = ENGINE_PATH+'/lifekit-role';
+const engineRoot = ENGINE_PATH + '/lifekit-role';
 
-const crypto = require('crypto');
 const Sequelize = require('sequelize');
-const datasource = require(engineRoot+'/src/config/datasource.json');
+const datasource = require(engineRoot + '/src/config/datasource.json');
 const sequelize = new Sequelize(
   datasource.database,
   datasource.username,
   datasource.password,
   datasource);
 
-let role = sequelize.import(engineRoot+'/src/model/role.js');
-let user = sequelize.import(engineRoot+'/src/model/user.js');
-let roleEngine = sequelize.import(engineRoot+'/src/model/roleEngine.js');
-let userRole = sequelize.import(engineRoot+'/src/model/userRole.js');
-let engine = sequelize.import(engineRoot+'/src/model/engine.js');
-let engineAuth = sequelize.import(engineRoot+'/src/model/engineAuth.js');
+let Role = sequelize.import(engineRoot + '/src/model/role.js');
+let User = sequelize.import(engineRoot + '/src/model/user.js');
+let RoleEngine = sequelize.import(engineRoot + '/src/model/roleEngine.js');
+let UserRole = sequelize.import(engineRoot + '/src/model/userRole.js');
+let Engine = sequelize.import(engineRoot + '/src/model/engine.js');
+let EngineAuth = sequelize.import(engineRoot + '/src/model/engineAuth.js');
+Engine.hasMany(EngineAuth);
 
-
-sequelize.sync({force: false}).then(function() {
-    console.log("角色模块数据结构初始化成功");
-}).catch(function(err){
-    console.log("角色模块数据结构初始化失败: %s", err);
+sequelize.sync({ force: false }).then(function() {
+  console.log("角色模块数据结构初始化成功");
+}).catch(function(err) {
+  console.log("角色模块数据结构初始化失败: %s", err);
 });
 
-function service(net) { 
+function service(net) {
 
-  this.roleManage = function(ctx){
-    return ctx.render("lifekit-role/web/roleManage/index.ejs", {});
+  this.roleManage = async function(ctx) { 
+    try {
+      let [rows,engines] = await [
+        User.findAll(),
+        Engine.findAll({include: [EngineAuth]})
+      ] ;
+      return ctx.render("lifekit-role/web/roleManage/index.ejs", { userRows: rows,engines:engines });
+    } catch (e) {
+      console.log(e);
+      return ctx.render("lifekit-role/web/roleManage/index.ejs", {});
+    } 
+  } 
+
+  //模块列表
+  this.engineManage = async function(ctx) {
+    let engineList = await Engine.findAll();
+    return ctx.render("lifekit-role/web/engineManage/list.ejs", {rows:engineList});
   }
 
-  this.engineManage = function(ctx){
-    return ctx.render("lifekit-role/web/engineManage/index.ejs", {});
+  this.engineDetailView = async function(ctx,parms){
+    let id = parms?parms.id:"";
+    try {
+      let eng = await Engine.findById(id);
+      let auths = await EngineAuth.findAll({where:{engineId:id}});
+      return ctx.render("lifekit-role/web/engineManage/addOrEdit.ejs", {engine:eng,auths:auths});
+    } catch (e) {
+      console.log(e);
+      return ctx.render("lifekit-role/web/engineManage/addOrEdit.ejs", {});
+    } 
   }
 
-  this.getUserList = async function(ctx){
-    try{
-      let rows = await user.findAll(); 
-      return ctx.render("lifekit-role/web/roleManage/userList.ejs", {rows:rows});
-    }catch(e){
-      console.log(e); 
+  this.getUserList = async function(ctx) {
+    try {
+      let rows = await User.findAll();
+      return ctx.render("lifekit-role/web/roleManage/userList.ejs", { rows: rows });
+    } catch (e) {
+      console.log(e);
       return ctx.render("lifekit-role/web/roleManage/userList.ejs", {});
+    }
+  }
+
+  this.saveEngine = async function(ctx, engineObj) {
+    try {
+      let id = engineObj.id;
+      if (id) { //更新
+        await EngineAuth.destroy({ where: { engineId: id } }); //删除关联的权限
+        let engineAuths = engineObj.engine_auths;
+        for (let i = 0; i < engineAuths.length; i++) {
+          engineAuths[i].engineId = id;
+        }
+        await [
+          Engine.upsert(engineObj), //更新基本信息 
+          EngineAuth.bulkCreate(engineAuths) //重新保存关联的权限
+        ]
+
+      } else { //新建
+        await Engine.create(engineObj, { include: [EngineAuth] });
+      } 
+      return ctx.body = "success";
+    } catch (e) {
+      console.log(e);
+      return ctx.body = "fail";
     } 
   }
 
-  this.login = async function(ctx, parms) {
-    let data = JSON.parse(parms);
-    let username = data.username;
-    let password = data.password;
-    const hash = crypto.createHash('md5');
-    hash.update(password);
-    password = hash.digest('hex');
-
-    try{
-      let rows = await user.findAll({where:{username:username,password:password}});
-      if (rows.length > 0) {
-        ctx.session.user = rows[0]; 
-        var res = { flag: "success" };
-        return ctx.body = JSON.stringify(res);
-      } else {
-        return ctx.body = JSON.stringify({ flag: "fail" });
-      }
-    }catch(e){
-      console.log(e);
-      return ctx.body = JSON.stringify({ flag: "fail" });
-    }
- 
-  }
-
-  this.update = function(ctx, parms) {
-    var loginUser = ctx.session.user;
-    if (loginUser) {
-      return ctx.render("lifekit-login/web/update/index.ejs", {user:loginUser});
-    } else {
-      return ctx.render('lifekit-login/web/update/back.ejs',{});
-    }
-  }
-
-  this.updateUser = async function(ctx,parms) { 
+  this.deleteEngine = async function (ctx, parms) {
     try {
-      let data = JSON.parse(parms);
-      let loginUser = ctx.session.user;
-      loginUser.set("name",data.name);
-      loginUser.set("email",data.email);
-      loginUser.set("phone",data.phone); 
-      ctx.session.user = await loginUser.save(); 
-      var res = { flag: "success" };
-      return ctx.body = JSON.stringify(res);
+      await [  //删除组件
+        Engine.destroy({ where: { id: parms } }),
+        EngineAuth.destroy({ where: { engineId: parms } })
+      ]
+      return ctx.body = "success";
     } catch (e) {
       console.log(e);
-      return ctx.body = JSON.stringify({ flag: "false" });
-    }
-  }
-
-  this.addUser = async function(ctx, parms) {
-    var data = JSON.parse(parms);
-    const hash = crypto.createHash('md5');
-    hash.update(data["password"]);
-    data["password"] = hash.digest('hex');
-    try {
-      let row = await user.create(data);
-      ctx.session.user = row; 
-      var res = { flag: "success" };
-      return ctx.body = JSON.stringify(res);
-    } catch (e) {
-      console.log(e);
-      return ctx.body = JSON.stringify({ flag: "false" });
-    } 
-  };
-
-  //检查用户名是否存在
-  this.checkUser = async function(ctx, parms) { 
-    try{
-      let rows = await user.findAll({where:{username:parms}}); 
-      if(rows.length>0){
-        return ctx.body = JSON.stringify({ 'valid': false });
-      }else{
-        return ctx.body = JSON.stringify({ 'valid': true });
-      }
-    }catch (e) {
-      console.error(e);
-      return ctx.body = JSON.stringify({ 'valid': false });
-    } 
-  };
-
-  //检查昵称是否存在
-  this.checkNc = async function(ctx, parms) { 
-    try {
-      var rows = await user.findAll({where:{name:parms}});
-      if (rows.length > 0) {
-        return ctx.body = JSON.stringify({ 'valid': false });
-      } else {
-        return ctx.body = JSON.stringify({ 'valid': true });
-      }
-    } catch (e) {
-      console.error(e);
-      return ctx.body = JSON.stringify({ 'valid': false });
-    }
-  };
+      return ctx.body = "fail";
+    }  
+  } 
 
   //检查昵称是否被其他用户使用
-  this.checkNcAgain = async function(ctx, parms) { 
+  this.checkNcAgain = async function(ctx, parms) {
     let id = ctx.session.user.get("id");
     try {
-      var rows = await user.findAll({where:{name:parms,id:{$ne:id}}});
+      var rows = await user.findAll({ where: { name: parms, id: { $ne: id } } });
       if (rows.length > 0) {
         return ctx.body = JSON.stringify({ 'valid': false });
       } else {

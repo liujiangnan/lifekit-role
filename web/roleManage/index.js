@@ -127,48 +127,89 @@ function saveInfo() {
 }
 
 
-function choseUser(){ 
+function choseUser() {
 
-	$('#addUser').parent().find(".userTag").remove();
+  $('#addUser').parent().find(".userTag").remove();
 
-	var userids = "";
-	$("#userTable").find(":checkbox").each(function(){
-		var checked = $(this).prop("checked");
-		if(checked){ 
-			var tr = $(this).parent().parent();
-			var nc = tr.find("td:nth-child(3)").text();
-			var userTag = $("#cloneContaner").find(".userTag").clone(true);
-			userTag.find("span [name='tagName']").text(nc.trim());
-			$("#addUser").before(userTag); 
+  var userids = "";
+  $("#userTable").find(":checkbox").each(function() {
+    var checked = $(this).prop("checked");
+    if (checked) {
+      var tr = $(this).parent().parent();
+      var nc = tr.find("td:nth-child(3)").text();
+      var userTag = $("#cloneContaner").find(".userTag").clone(true);
+      userTag.find("span [name='tagName']").text(nc.trim());
+      $("#addUser").before(userTag);
 
-			var id = $(this).val();
-			userids = userids?(userids+","+id):id;
-		} 
-	});
-	$("#users").val(userids);
+      var id = $(this).val();
+      userids = userids ? (userids + "," + id) : id;
+    }
+  });
+  $("#users").val(userids);
+}
+
+
+function choseEngine() {
+
+  $('#addUser').parent().find(".userTag").remove();
+
+  var userids = "";
+  $("#userTable").find(":checkbox").each(function() {
+    var checked = $(this).prop("checked");
+    if (checked) {
+      var tr = $(this).parent().parent();
+      var nc = tr.find("td:nth-child(3)").text();
+      var userTag = $("#cloneContaner").find(".userTag").clone(true);
+      userTag.find("span [name='tagName']").text(nc.trim());
+      $("#addUser").before(userTag);
+
+      var id = $(this).val();
+      userids = userids ? (userids + "," + id) : id;
+    }
+  });
+  $("#users").val(userids);
 }
 
 
 $(function() {
 
-  $("#addUser").bind('click', function() {
-    net.getView("getUserList", "", function(res) {
-      showModal(
-        "选择用户",
-				res,
-				'<button type="button" onClick="choseUser()" class="btn btn-default" data-dismiss="modal">确定</button>'+
-        '<button type="button" class="btn btn-default" data-dismiss="modal" >取消</button>'
-      );
-    });
-	});
-	
-	$("span [name='delPic']").hover(function(){
-		$(this).addClass("text-danger");
-	},function(){
-		$(this).removeClass("text-danger");
-	}).bind('click',function(){
-		$(this).parent().parent().hide().remove();
-	});
+  $("#userTable tr").bind('click',function(){
+    var check = $(this).find(":checkbox").eq(0); 
+    check.prop("checked", !check.prop("checked"));
+  });
+
+  $("#choseUser").bind('click', function() {
+    var visib = $('#userContainer').is(":hidden");
+    if(visib){
+      $('#userPic').removeClass("glyphicon-plus").addClass("glyphicon-minus");
+      $('#userContainer').show();
+    }else{
+      $('#userPic').removeClass("glyphicon-minus").addClass("glyphicon-plus");
+      $('#userContainer').hide();
+    } 
+  });
+
+  $("#choseEngine").bind('click', function() {
+    var visib = $('#engineContainer').is(":hidden");
+    if(visib){
+      $('#enginePic').removeClass("glyphicon-plus").addClass("glyphicon-minus");
+      $('#engineContainer').show();
+    }else{
+      $('#enginePic').removeClass("glyphicon-minus").addClass("glyphicon-plus");
+      $('#engineContainer').hide();
+    } 
+  });
+ 
+
+
+  $("span [name='delPic']").hover(function() {
+    $(this).addClass("text-danger");
+  }, function() {
+    $(this).removeClass("text-danger");
+  }).bind('click', function() {
+    $(this).parent().parent().hide().remove();
+  });
+
 
   // checkInfo();
   // $("#saveUser").bind("click",function(){
