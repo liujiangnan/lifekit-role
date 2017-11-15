@@ -11,7 +11,7 @@
     let row = userRows[i];
   %>
   <tr>
-		<td><input type="checkbox" value="<%=row.id%>" /></td>
+		<td><input type="checkbox" <%if(checked.indexOf(row.id)>-1){%>checked<%}%> value="<%=row.id%>" /></td>
     <td><div class="userTd"><%=row.username%></div></td>
     <td><div class="userTd"><%=row.name%></div></td>
     <td><div class="userTd"><%=row.phone%></div></td>
@@ -20,3 +20,11 @@
   <%}%>
 </table>
  
+<script>
+  $(function(){
+    $("#userTable tr").bind('click', function() {
+      var check = $(this).find(":checkbox").eq(0);
+      check.prop("checked", !check.prop("checked"));
+    });
+  });
+</script>

@@ -22,15 +22,20 @@
     function showModal(titleHtml,bodyHtml,bottomHtml,hideCallback){
         $("#myModalLabel").html(titleHtml);
         $(".modal-body").html(bodyHtml);
-        $("#modalButton").html(bottomHtml);
-        alertHideCallback = hideCallback;
-        $('#myModal').modal();
+        $("#modalButton").html(bottomHtml); 
+        if(hideCallback){
+            alertHideCallback = hideCallback;
+        } 
+        $('#myModal').modal(); 
     }
 
-    function showAlert(titleHtml,bodyHtml){
+    function showAlert(titleHtml,bodyHtml,hideCallback){
         $("#myModalLabel").html(titleHtml);
         $(".modal-body").html(bodyHtml);
         $("#modalButton").html('<button type="button" class="btn btn-default" data-dismiss="modal" >确定</button>'); 
-        $('#myModal').modal();
+        if(hideCallback){
+            alertHideCallback = hideCallback;
+        } 
+        $('#myModal').modal(); 
     }
 </script>

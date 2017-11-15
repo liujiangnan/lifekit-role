@@ -8,23 +8,19 @@
     display: inline; 
 		margin-left: 15px;
   }
-
-  input{
-    vertical-align: middle;
-    height:16px;
-  }
+ 
 </style>
 
-<div class="panel panel-default"> 
+<div id="engineTable" class="panel panel-default"> 
     <%
     if(engines){
       for(let i=0;i<engines.length;i++){
         let engine = engines[i];
     %>
     <div class="panel-heading" style="font-weight: 700;">
-        <input name="enginecheckbox" type="checkbox" value="<%=engine.id %>" /><div class="enginegroup text-primary" name="enginegroup" ><%=engine.name%></div>
+        <input name="enginecheckbox" style="vertical-align:text-top;margin-top:0;line-height: 16px;height:16px;" type="checkbox" value="<%=engine.id %>" /><div class="enginegroup text-primary" name="enginegroup" ><%=engine.name%></div>
     </div> 
-    <div id="authgroup" class="panel-body">
+    <div id="<%=engine.id %>_authgroup" class="panel-body">
       <div class="row">
           <div class="order" style="font-weight: 700;">
             权限设置：
@@ -34,7 +30,7 @@
               let auth = engine.engine_auths[j];
           %>
           <div class="order">
-            <input type="checkbox" name="authcheckbox" value="<%=auth.id%>" /> 
+            <input type="checkbox" style="vertical-align:text-top;margin-top:0;line-height: 16px;height:16px;"  name="authcheckbox" value="<%=auth.id%>" /> 
             <div class="enginegroup" name="engineauth" >
               <%=auth.name%>
             </div>
@@ -58,7 +54,8 @@
       check.prop("checked", !check.prop("checked")); 
       var flag = check.prop("checked");
       if(!flag){
-        $("#authgroup :checkbox").each(function(){
+        var val = check.val();
+        $("#"+val+"_authgroup :checkbox").each(function(){
           $(this).prop('checked',flag);
         });
       }
@@ -67,7 +64,8 @@
     $('[name="enginecheckbox"]').change(function(){
       var flag = $(this).prop("checked");
       if(!flag){
-        $("#authgroup :checkbox").each(function(){
+        var val = $(this).val();
+        $("#"+val+"_authgroup :checkbox").each(function(){
           $(this).prop('checked',flag);
         });
       }

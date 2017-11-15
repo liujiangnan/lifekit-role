@@ -173,54 +173,72 @@ function choseEngine() {
 
 $(function() {
 
-  $("#userTable tr").bind('click',function(){
-    var check = $(this).find(":checkbox").eq(0); 
+  $("#userTable tr").bind('click', function() {
+    var check = $(this).find(":checkbox").eq(0);
     check.prop("checked", !check.prop("checked"));
   });
 
   $("#choseUser").bind('click', function() {
     var visib = $('#userContainer').is(":hidden");
-    if(visib){
+    if (visib) {
       $('#userPic').removeClass("glyphicon-plus").addClass("glyphicon-minus");
       $('#userContainer').show();
-    }else{
+    } else {
       $('#userPic').removeClass("glyphicon-minus").addClass("glyphicon-plus");
       $('#userContainer').hide();
-    } 
+    }
   });
 
   $("#choseEngine").bind('click', function() {
     var visib = $('#engineContainer').is(":hidden");
-    if(visib){
+    if (visib) {
       $('#enginePic').removeClass("glyphicon-plus").addClass("glyphicon-minus");
       $('#engineContainer').show();
-    }else{
+    } else {
       $('#enginePic').removeClass("glyphicon-minus").addClass("glyphicon-plus");
       $('#engineContainer').hide();
-    } 
+    }
+  });
+
+  $("#saveRole").bind('click', function() {
+    var id = $("#id").val();
+    var name = $("#name").val();
+    var description = $("#description").val().trim();
+    var engines = [];
+    $("#engineTable").find("[name='enginecheckbox']").each(function(i,n){
+      if($(this).prop("checked")){
+        var id = $(this).val();
+        var obj = {id:id,auths:[]};
+        $("#"+id+"_authgroup").find("[name='authcheckbox']").each(function(){
+          if($(this).prop("checked")){
+            obj.auths.push($(this).val());
+          } 
+        });
+        engines.push(obj);
+      } 
+    });
+    var users = [];
+    $("#userTable :checked").each(function(){
+      users.push($(this).val());
+    });
+    var data = {
+      id:id,
+      name:name,
+      description:description,
+      engines:engines,
+      users,users
+    }
+
+    console.log(data);
+
+    net.getData("saveRole",data,function(res){
+      alert(res);
+    });
+
+  });
+
+  $("#cancle").bind('click', function() {
+    document.location.href = "/lifekit-login";
   });
  
-
-
-  $("span [name='delPic']").hover(function() {
-    $(this).addClass("text-danger");
-  }, function() {
-    $(this).removeClass("text-danger");
-  }).bind('click', function() {
-    $(this).parent().parent().hide().remove();
-  });
-
-
-  // checkInfo();
-  // $("#saveUser").bind("click",function(){
-  //     $("#userform").bootstrapValidator('validate');
-  //     if($('#userform').data('bootstrapValidator').isValid()){
-  //         saveInfo();
-  //     }else{
-  //         showModal("提示","请认真填写必要信息","确定");
-  //     }
-  // });
-  // $("#cancle").bind('click',function(){
-  //     document.location.href="/lifekit-login";
-  // });
 });
