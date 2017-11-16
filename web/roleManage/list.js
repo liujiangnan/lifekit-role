@@ -11,6 +11,9 @@ function deleteRole(){
       checked.each(function(){
         $(this).parent().parent().hide().remove();
       });
+      $("#edit").hide();
+      $("#person").hide();
+      $("#engine").hide();
     }else{
       showAlert("提示","删除失败！"); 
     }
@@ -52,6 +55,14 @@ $(function(){
     let checked = $('.table').find(":checked").eq(0);
     let id = checked.val();
     net.getView("getUserList",id,function(res){
+      $(".container-fluid").html(res);
+    }); 
+  });
+
+  $("#engine").bind('click',function(){
+    let checked = $('.table').find(":checked").eq(0);
+    let id = checked.val();
+    net.getView("getEngineList",id,function(res){
       $(".container-fluid").html(res);
     }); 
   });

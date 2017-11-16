@@ -32,20 +32,7 @@ function service(net) {
       console.log(e);
       return ctx.render("lifekit-role/web/roleManage/list.ejs", {});
     }
-  }
-
-  this.roleManage1 = async function(ctx) {
-    try {
-      let [rows, engines] = await Promise.all([
-        User.findAll(),
-        Engine.findAll({ include: [EngineAuth] })
-      ]);
-      return ctx.render("lifekit-role/web/roleManage/index.ejs", { userRows: rows, engines: engines });
-    } catch (e) {
-      console.log(e);
-      return ctx.render("lifekit-role/web/roleManage/index.ejs", {});
-    }
-  }
+  } 
 
   this.roleDetail = async function(ctx, id) {
     try {
@@ -78,9 +65,9 @@ function service(net) {
     return ctx.render("lifekit-role/web/engineManage/list.ejs", { rows: engineList });
   }
 
-  this.engineDetailView = async function(ctx, parms) {
-    let id = parms ? parms.id : "";
+  this.engineDetailView = async function(ctx, parms) {  
     try {
+      let id = parms ? JSON.parse(parms).id : ""; 
       let eng = await Engine.findById(id);
       let auths = await EngineAuth.findAll({ where: { engineId: id } });
       return ctx.render("lifekit-role/web/engineManage/addOrEdit.ejs", { engine: eng, auths: auths });
@@ -89,15 +76,75 @@ function service(net) {
       return ctx.render("lifekit-role/web/engineManage/addOrEdit.ejs", {});
     }
   }
+ 
+  this.getEngineList = async function(ctx, roleId) {
+    try {
+      let rows = await Engine.findAll({ include: [EngineAuth] });
+      let checked = await RoleEngine.findAll({ attributes: ["engine_id","engine_auth_id"], where: { role_id: roleId } }); 
+      let checkObj = {};
+      for(let i=0;i<checked.length;i++){
+        let engine_id = checked[i].engine_id+"";
+        let engine_auth_id = checked[i].engine_auth_id+"";
+        if(checkObj[engine_id]){
+          checkObj[engine_id].push(engine_auth_id);
+        }else{
+          checkObj[engine_id] = [engine_auth_id];
+        } 
+      } 
+      console.log(checkObj);
+      return ctx.render("lifekit-role/web/roleManage/engineList.ejs", { engines: rows, checked: checkObj,role_id:roleId });
+    } catch (e) {
+      console.log(e);
+      return ctx.render("lifekit-role/web/roleManage/engineList.ejs", {});
+    }
+  }
 
   this.getUserList = async function(ctx, roleId) {
     try {
       let rows = await User.findAll();
       let checked = await UserRole.findAll({ attributes: ["user_id"], where: { role_id: roleId } }); 
-      return ctx.render("lifekit-role/web/roleManage/userList.ejs", { userRows: rows, checked: checked });
+      let checkArr = [];
+      for(let i=0;i<checked.length;i++){
+        checkArr.push(checked[i].user_id);
+      } 
+      return ctx.render("lifekit-role/web/roleManage/userList.ejs", { userRows: rows, checked: checkArr,role_id:roleId });
     } catch (e) {
       console.log(e);
       return ctx.render("lifekit-role/web/roleManage/userList.ejs", {});
+    }
+  }
+
+  this.saveRoleEngine = async function(ctx,data){
+    try { 
+      //删除之前的
+      let role_id = data.role_id;
+      await RoleEngine.destroy({ where: { role_id: role_id } }); //删除关联的权限
+
+      let arr = data.arr;
+      if(arr){
+        await RoleEngine.bulkCreate(arr); 
+      } 
+      return ctx.body = "success";
+    } catch (e) {
+      console.log(e);
+      return ctx.body = "fail";
+    }
+  }
+
+  this.saveUserRole = async function(ctx,data){
+    try { 
+      //删除之前的
+      let role_id = data.role_id;
+      await UserRole.destroy({ where: { role_id: role_id } }); //删除关联的权限
+
+      let arr = data.arr;
+      if(arr){
+        await UserRole.bulkCreate(arr); 
+      } 
+      return ctx.body = "success";
+    } catch (e) {
+      console.log(e);
+      return ctx.body = "fail";
     }
   }
 
